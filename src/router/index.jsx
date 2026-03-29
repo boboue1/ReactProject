@@ -2,8 +2,9 @@ import { createBrowserRouter } from 'react-router-dom';
 import ProtectedRoute from './ProtectedRoute';
 import LoginPage from '../pages/LoginPage';
 import DashboardPage from '../pages/DashboardPage';
+import AdminPage from '../pages/AdminPage';
 
-export const router = createBrowserRouter([
+const router = createBrowserRouter([
   { path: '/login', element: <LoginPage /> },
   {
     path: '/',
@@ -22,3 +23,5 @@ export const router = createBrowserRouter([
     ),
   },
 ]);
+
+export default router;
