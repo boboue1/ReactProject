@@ -5,8 +5,8 @@ import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { login } from '../api/auth.api';
 import { authStore } from '../store/auth.store';
+import './auth.css';
 
-// Schéma de validation
 const loginSchema = z.object({
   email: z.string().email('Email invalide'),
   password: z.string().min(4, 'Minimum 6 caractères'),
@@ -17,11 +17,7 @@ const LoginPage = () => {
   const [serverError, setServerError] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
 
-  const {
-    register,
-    handleSubmit,
-    formState: { errors },
-  } = useForm({
+  const { register, handleSubmit, formState: { errors } } = useForm({
     resolver: zodResolver(loginSchema),
   });
 
@@ -33,81 +29,60 @@ const LoginPage = () => {
       authStore.setTokens(response.data.token, response.data.refresh_token);
       navigate('/');
     } catch (error) {
-       const message = error.response?.data?.message || 'Email ou mot de passe incorrect';
-        setServerError(message);
+      const message = error.response?.data?.message || 'Email ou mot de passe incorrect';
+      setServerError(message);
     } finally {
       setIsLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-gray-100 flex items-center justify-center">
-      <div className="bg-white p-8 rounded-2xl shadow-md w-full max-w-md">
+    <div className="auth-page">
+      <div className="auth-card">
 
-        <h1 className="text-2xl font-bold text-gray-800 mb-6 text-center">
-          Connexion
-        </h1>
+        <div className="auth-logo">🔐</div>
+        <h1 className="auth-title">Connexion</h1>
+        <p className="auth-subtitle">Bienvenue, entrez vos identifiants</p>
 
-        {/* Erreur serveur */}
         {serverError && (
-          <div className="bg-red-100 text-red-600 text-sm px-4 py-3 rounded-lg mb-4">
-            {serverError}
-          </div>
+          <div className="auth-error">{serverError}</div>
         )}
 
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
+        <form className="auth-form" onSubmit={handleSubmit(onSubmit)}>
 
-          {/* Email */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Email
-            </label>
+          <div className="auth-field">
+            <label className="auth-label">Email</label>
             <input
               {...register('email')}
               type="email"
               placeholder="exemple@email.com"
-              className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 
-                ${errors.email ? 'border-red-400' : 'border-gray-300'}`}
+              className={`auth-input${errors.email ? ' has-error' : ''}`}
             />
-            {errors.email && (
-              <p className="text-red-500 text-xs mt-1">{errors.email.message}</p>
-            )}
+            {errors.email && <span className="auth-field-error">{errors.email.message}</span>}
           </div>
 
-          {/* Mot de passe */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Mot de passe
-            </label>
+          <div className="auth-field">
+            <label className="auth-label">Mot de passe</label>
             <input
               {...register('password')}
               type="password"
               placeholder="••••••••"
-              className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500
-                ${errors.password ? 'border-red-400' : 'border-gray-300'}`}
+              className={`auth-input${errors.password ? ' has-error' : ''}`}
             />
-            {errors.password && (
-              <p className="text-red-500 text-xs mt-1">{errors.password.message}</p>
-            )}
+            {errors.password && <span className="auth-field-error">{errors.password.message}</span>}
           </div>
 
-          {/* Bouton */}
-          <button
-            type="submit"
-            disabled={isLoading}
-            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            {isLoading ? 'Connexion...' : 'Se connecter'}
+          <button type="submit" className="auth-btn" disabled={isLoading}>
+            {isLoading ? 'Connexion…' : 'Se connecter'}
           </button>
 
-            <p className="text-sm text-center text-gray-500 mt-4">
-            Pas encore de compte ?{' '}
-            <Link to="/register" className="text-blue-600 hover:underline">
-                S'inscrire
-            </Link>
-            </p>
-
         </form>
+
+        <p className="auth-footer">
+          Pas encore de compte ?{' '}
+          <Link to="/register" className="auth-link">S'inscrire</Link>
+        </p>
+
       </div>
     </div>
   );
