@@ -1,22 +1,19 @@
 import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import Navbar from '../components/layout/NavBar';
 import { getUsers } from '../features/users/users.api';
-import { authStore } from '../store/auth.store';
+import './AdminPage.css';
 
-const AdminPage = () => {
-  const [users, setUsers] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [search, setSearch] = useState('');
-  const navigate = useNavigate();
+const SECTIONS = [
+  { id: 'users',  label: 'Utilisateurs', icon: '👥', desc: 'Gestion des comptes' },
+  { id: 'events', label: 'Événements',   icon: '📅', desc: 'À venir' },
+];
 
-  // Sécurité côté client : rediriger si pas admin
-  useEffect(() => {
-    if (!authStore.hasRole('ROLE_ADMIN')) {
-      navigate('/');
-    }
-  }, [navigate]);
+export default function AdminPage() {
+  const [users, setUsers]                 = useState([]);
+  const [loading, setLoading]             = useState(true);
+  const [error, setError]                 = useState(null);
+  const [search, setSearch]               = useState('');
+  const [activeSection, setActiveSection] = useState('users');
 
   useEffect(() => {
     getUsers()
@@ -25,108 +22,152 @@ const AdminPage = () => {
       .finally(() => setLoading(false));
   }, []);
 
-  const formatDate = (dateStr) => {
-    if (!dateStr) return '—';
-    return new Date(dateStr).toLocaleDateString('fr-FR', {
-      day: 'numeric',
-      month: 'short',
-      year: 'numeric',
-    });
-  };
+  const fmt = (d) =>
+    d ? new Date(d).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' }) : '—';
 
   const filtered = users.filter(
     (u) =>
       u.nom?.toLowerCase().includes(search.toLowerCase()) ||
-      u.email?.toLowerCase().includes(search.toLowerCase())
+      u.email?.toLowerCase().includes(search.toLowerCase()),
   );
+
+  const current = SECTIONS.find((s) => s.id === activeSection);
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="ap-root">
       <Navbar />
 
-      <main className="pt-20 px-6 max-w-5xl mx-auto">
-        {/* Header */}
-        <div className="mt-8 mb-6 flex items-center justify-between flex-wrap gap-4">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-2">
-              🔒 Panneau Administrateur
-            </h1>
-            <p className="text-gray-500 mt-1">Liste de tous les utilisateurs inscrits.</p>
+      <div className="ap-body">
+        {/* ══ SIDEBAR ══ */}
+        <aside className="ap-sidebar">
+          <div className="ap-sb-brand">
+            <p className="ap-sb-eyebrow">Administration</p>
+            <p className="ap-sb-title">Panneau admin</p>
           </div>
-          <div className="bg-purple-100 text-purple-700 text-sm font-semibold px-4 py-2 rounded-full">
-            {users.length} utilisateur{users.length !== 1 ? 's' : ''}
-          </div>
-        </div>
 
-        {/* Barre de recherche */}
-        <div className="mb-4">
-          <input
-            type="text"
-            placeholder="Rechercher par nom ou email..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="w-full max-w-sm px-4 py-2 border border-gray-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-purple-400"
-          />
-        </div>
+          <nav className="ap-sb-nav">
+            {SECTIONS.map((s) => (
+              <button
+                key={s.id}
+                className={`ap-sb-btn${activeSection === s.id ? ' active' : ''}`}
+                onClick={() => setActiveSection(s.id)}
+              >
+                <span className="ap-sb-ico">{s.icon}</span>
+                <span className="ap-sb-txt">
+                  <span className="ap-sb-main">{s.label}</span>
+                  <span className="ap-sb-sub">{s.desc}</span>
+                </span>
+                {s.id === 'users' && !loading && (
+                  <span className="ap-sb-badge">{users.length}</span>
+                )}
+              </button>
+            ))}
+          </nav>
 
-        {/* Erreur */}
-        {error && (
-          <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-xl mb-6 text-sm">
-            {error}
-          </div>
-        )}
+          <div className="ap-sb-footer">Connecté en tant qu'admin</div>
+        </aside>
 
-        {/* Tableau */}
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-          {loading ? (
-            <div className="p-8 space-y-3">
-              {[1, 2, 3, 4, 5].map((i) => (
-                <div key={i} className="h-10 bg-gray-100 rounded-lg animate-pulse" />
-              ))}
+        {/* ══ MAIN ══ */}
+        <div className="ap-main">
+          {/* Header */}
+          <div className="ap-header">
+            <div className="ap-header-row">
+              <div>
+                <h1 className="ap-page-title">{current?.icon} {current?.label}</h1>
+                <p className="ap-page-sub">
+                  {activeSection === 'users'  && 'Liste complète de tous les comptes inscrits'}
+                  {activeSection === 'events' && 'Gestion des événements de la plateforme'}
+                </p>
+              </div>
+              {activeSection === 'users' && !loading && (
+                <span className="ap-page-badge">
+                  {users.length} compte{users.length !== 1 ? 's' : ''}
+                </span>
+              )}
             </div>
-          ) : filtered.length === 0 ? (
-            <div className="p-12 text-center text-gray-400">
-              <div className="text-4xl mb-3">🔍</div>
-              <p className="font-medium">Aucun utilisateur trouvé</p>
-            </div>
-          ) : (
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="bg-gray-50 border-b border-gray-100 text-left">
-                  <th className="px-6 py-3 font-semibold text-gray-500 uppercase text-xs tracking-wide">ID</th>
-                  <th className="px-6 py-3 font-semibold text-gray-500 uppercase text-xs tracking-wide">Nom</th>
-                  <th className="px-6 py-3 font-semibold text-gray-500 uppercase text-xs tracking-wide">Email</th>
-                  <th className="px-6 py-3 font-semibold text-gray-500 uppercase text-xs tracking-wide">Rôle</th>
-                  <th className="px-6 py-3 font-semibold text-gray-500 uppercase text-xs tracking-wide">Inscrit le</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-50">
-                {filtered.map((user) => (
-                  <tr key={user.id} className="hover:bg-gray-50 transition-colors">
-                    <td className="px-6 py-4 text-gray-400 font-mono">#{user.id}</td>
-                    <td className="px-6 py-4 font-medium text-gray-900">{user.nom}</td>
-                    <td className="px-6 py-4 text-gray-600">{user.email}</td>
-                    <td className="px-6 py-4">
-                      {user.roles?.includes('ROLE_ADMIN') ? (
-                        <span className="inline-flex items-center gap-1 bg-purple-100 text-purple-700 text-xs font-semibold px-2 py-1 rounded-full">
-                          🔒 Admin
-                        </span>
-                      ) : (
-                        <span className="inline-flex items-center gap-1 bg-blue-100 text-blue-700 text-xs font-semibold px-2 py-1 rounded-full">
-                          👤 Utilisateur
-                        </span>
-                      )}
-                    </td>
-                    <td className="px-6 py-4 text-gray-500">{formatDate(user.date_inscription)}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          )}
+            <div className="ap-divider" />
+          </div>
+
+          {/* Scrollable body */}
+          <div className="ap-body-scroll">
+
+            {/* ── Utilisateurs ── */}
+            {activeSection === 'users' && (
+              <div className="ap-fade">
+                <div className="ap-search-wrap">
+                  <div className="ap-search-inner">
+                    <input
+                      type="text"
+                      className="ap-search"
+                      placeholder="Rechercher par nom ou email…"
+                      value={search}
+                      onChange={(e) => setSearch(e.target.value)}
+                    />
+                  </div>
+                </div>
+
+                {error && <div className="ap-err">{error}</div>}
+
+                <div className="ap-table-wrap">
+                  {loading ? (
+                    <div style={{ padding: 16, display: 'flex', flexDirection: 'column', gap: 8 }}>
+                      {[1,2,3,4,5].map((i) => <div key={i} className="ap-skel" style={{ height: 38 }} />)}
+                    </div>
+                  ) : filtered.length === 0 ? (
+                    <div className="ap-empty">
+                      <div className="ap-empty-ico">🔍</div>
+                      <p className="ap-empty-text">Aucun utilisateur trouvé</p>
+                    </div>
+                  ) : (
+                    <table className="ap-table">
+                      <thead>
+                        <tr>
+                          <th>ID</th>
+                          <th>Nom</th>
+                          <th>Email</th>
+                          <th>Inscrit le</th>
+                          <th>Statut</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {filtered.map((user) => {
+                          const on = user.status === 'actif' || user.actif === true;
+                          return (
+                            <tr key={user.id}>
+                              <td className="td-id">#{user.id}</td>
+                              <td className="td-name">{user.nom}</td>
+                              <td className="td-email">{user.email}</td>
+                              <td className="td-date">{fmt(user.date_inscription)}</td>
+                              <td>
+                                <span className={`ap-status ${on ? 'on' : 'off'}`}>
+                                  <span className="ap-status-dot" />
+                                  {on ? 'Actif' : 'Inactif'}
+                                </span>
+                              </td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* ── Événements ── */}
+            {activeSection === 'events' && (
+              <div className="ap-fade ap-ev-wrap">
+                <p className="ap-ev-title">Aucun événement pour l'instant</p>
+                <p className="ap-ev-sub">
+                  La création d'événements n'est pas encore disponible et sera ajoutée prochainement.
+                </p>
+                <span className="ap-ev-pill">Disponible prochainement</span>
+              </div>
+            )}
+
+          </div>
         </div>
-      </main>
+      </div>
     </div>
   );
-};
-
-export default AdminPage;
+}
