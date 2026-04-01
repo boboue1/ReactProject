@@ -1,15 +1,18 @@
 import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import Navbar from '../components/layout/NavBar';
 import { getMe } from '../api/auth.api';
-import { authStore } from '../store/auth.store';
+import './DashboardPage.css';
+
+const SECTIONS = [
+  { id: 'profile',  label: 'Mon profil',   icon: '👤', desc: 'Mes informations' },
+  { id: 'events',   label: 'Événements',   icon: '📅', desc: 'À venir' },
+];
 
 const DashboardPage = () => {
-  const [profile, setProfile] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const navigate = useNavigate();
-  const isAdmin = authStore.hasRole('ROLE_ADMIN');
+  const [profile, setProfile]           = useState(null);
+  const [loading, setLoading]           = useState(true);
+  const [error, setError]               = useState(null);
+  const [activeSection, setActiveSection] = useState('profile');
 
   useEffect(() => {
     getMe()
@@ -18,100 +21,119 @@ const DashboardPage = () => {
       .finally(() => setLoading(false));
   }, []);
 
-  const formatDate = (dateStr) => {
-    if (!dateStr) return '—';
-    return new Date(dateStr).toLocaleDateString('fr-FR', {
-      day: 'numeric',
-      month: 'long',
-      year: 'numeric',
-    });
-  };
+  const formatDate = (d) =>
+    d ? new Date(d).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' }) : '—';
+
+  const current = SECTIONS.find((s) => s.id === activeSection);
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="dp-root">
       <Navbar />
 
-      <main className="pt-20 px-6 max-w-4xl mx-auto">
-        {/* Header */}
-        <div className="mt-8 mb-6">
-          {loading ? (
-            <div className="h-8 w-48 bg-gray-200 rounded animate-pulse" />
-          ) : (
-            <h1 className="text-3xl font-bold text-gray-900">
-              Bonjour, {profile?.nom} 👋
-            </h1>
-          )}
-          <p className="text-gray-500 mt-1">Voici votre espace personnel.</p>
-        </div>
+      <div className="dp-body">
 
-        {error && (
-          <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-xl mb-6 text-sm">
-            {error}
+        {/* ══ SIDEBAR ══ */}
+        <aside className="dp-sidebar">
+          <div className="dp-sb-brand">
+            <p className="dp-sb-eyebrow">Espace</p>
+            <p className="dp-sb-title">Mon compte</p>
           </div>
-        )}
 
-        {/* Carte profil */}
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-6">
-          <h2 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
-            <span>👤</span> Mon profil
-          </h2>
+          <nav className="dp-sb-nav">
+            {SECTIONS.map((s) => (
+              <button
+                key={s.id}
+                className={`dp-sb-btn${activeSection === s.id ? ' active' : ''}`}
+                onClick={() => setActiveSection(s.id)}
+              >
+                <span className="dp-sb-ico">{s.icon}</span>
+                <span className="dp-sb-txt">
+                  <span className="dp-sb-main">{s.label}</span>
+                  <span className="dp-sb-sub">{s.desc}</span>
+                </span>
+              </button>
+            ))}
+          </nav>
 
-          {loading ? (
-            <div className="space-y-3">
-              {[1, 2, 3, 4].map((i) => (
-                <div key={i} className="h-5 bg-gray-100 rounded animate-pulse" />
-              ))}
+          {profile && (
+            <div className="dp-sb-footer">
+              {profile.nom || profile.email}
             </div>
-          ) : profile ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <InfoRow label="Nom" value={profile.nom} />
-              <InfoRow label="Email" value={profile.email} />
-              <InfoRow
-                label="Rôle"
-                value={
-                  profile.roles?.includes('ROLE_ADMIN') ? (
-                    <span className="inline-flex items-center gap-1 bg-purple-100 text-purple-700 text-xs font-semibold px-2 py-1 rounded-full">
-                      🔒 Administrateur
-                    </span>
-                  ) : (
-                    <span className="inline-flex items-center gap-1 bg-blue-100 text-blue-700 text-xs font-semibold px-2 py-1 rounded-full">
-                      👤 Utilisateur
-                    </span>
-                  )
-                }
-              />
-              <InfoRow label="Inscrit le" value={formatDate(profile.date_inscription)} />
-            </div>
-          ) : null}
-        </div>
-
-        {/* Accès rapides */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          {isAdmin && (
-            <button
-              onClick={() => navigate('/admin')}
-              className="bg-purple-600 hover:bg-purple-700 text-white rounded-2xl p-6 text-left transition shadow-sm"
-            >
-              <div className="text-2xl mb-2">🔒</div>
-              <div className="font-semibold text-lg">Panneau Admin</div>
-              <div className="text-purple-200 text-sm mt-1">Gérer les utilisateurs</div>
-            </button>
           )}
-          <div className="bg-blue-50 border border-blue-100 rounded-2xl p-6">
-            <div className="text-2xl mb-2">✅</div>
-            <div className="font-semibold text-lg text-blue-800">Compte actif</div>
-            <div className="text-blue-500 text-sm mt-1">Vous êtes bien connecté</div>
+        </aside>
+
+        {/* ══ MAIN ══ */}
+        <div className="dp-main">
+
+          {/* Header */}
+          <div className="dp-header">
+            <div className="dp-header-row">
+              <div>
+                <h1 className="dp-page-title">{current?.icon} {current?.label}</h1>
+                <p className="dp-page-sub">
+                  {activeSection === 'profile'  && 'Vos informations personnelles'}
+                  {activeSection === 'events'   && 'Événements de la plateforme'}
+                </p>
+              </div>
+            </div>
+            <div className="dp-divider" />
+          </div>
+
+          {/* Content */}
+          <div className="dp-body-scroll">
+
+            {/* ── Mon profil ── */}
+            {activeSection === 'profile' && (
+              <div className="dp-fade">
+                {error && <div className="dp-error">{error}</div>}
+
+                {loading ? (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                    {[1,2,3,4].map((i) => <div key={i} className="dp-skel" style={{ height: 36 }} />)}
+                  </div>
+                ) : profile && (
+                  <div className="dp-card">
+                    <div className="dp-grid">
+                      <InfoRow label="Nom"        value={profile.nom} />
+                      <InfoRow label="Email"      value={profile.email} />
+                      <InfoRow label="Inscrit le" value={formatDate(profile.date_inscription)} />
+                      <InfoRow
+                        label="Rôle"
+                        value={
+                          <span className={`dp-badge ${profile.roles?.includes('ROLE_ADMIN') ? 'dp-badge-admin' : 'dp-badge-user'}`}>
+                            {profile.roles?.includes('ROLE_ADMIN') ? 'Administrateur' : 'Utilisateur'}
+                          </span>
+                        }
+                      />
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* ── Événements ── */}
+            {activeSection === 'events' && (
+              <div className="dp-fade dp-ev-wrap">
+                <div className="dp-ev-box">📅</div>
+                <p className="dp-ev-title">Aucun événement pour l'instant</p>
+                <p className="dp-ev-sub">
+                  La création d'événements n'est pas encore disponible et sera ajoutée prochainement.
+                </p>
+                <span className="dp-ev-pill">🚧 Disponible prochainement</span>
+              </div>
+            )}
+
           </div>
         </div>
-      </main>
+      </div>
     </div>
   );
 };
 
 const InfoRow = ({ label, value }) => (
-  <div className="flex flex-col gap-1">
-    <span className="text-xs font-medium text-gray-400 uppercase tracking-wide">{label}</span>
-    <span className="text-gray-800 font-medium">{value}</span>
+  <div>
+    <p className="dp-info-label">{label}</p>
+    <p className="dp-info-value">{value}</p>
   </div>
 );
 
