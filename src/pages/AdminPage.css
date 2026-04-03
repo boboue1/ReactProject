@@ -104,18 +104,18 @@
 
 .ap-err { background: rgba(248,113,113,.1); border: 1px solid rgba(248,113,113,.2); color: #f87171; padding: 9px 14px; border-radius: 9px; font-size: 12px; margin-bottom: 12px; }
 
-.ap-table-wrap { background: #111827; border: 1px solid #1f2535; border-radius: 14px; overflow-x: auto; }
-.ap-table { width: 100%; border-collapse: collapse; font-size: 12.5px; min-width: 500px; }
+.ap-table-wrap { background: #111827; border: 1px solid #1f2535; border-radius: 14px; overflow: hidden; }
+.ap-table { width: 100%; border-collapse: collapse; font-size: 11.5px; }
 .ap-table thead tr { border-bottom: 1px solid #1f2535; }
-.ap-table th { padding: 10px 15px; text-align: left; font-size: 9.5px; font-weight: 700; text-transform: uppercase; letter-spacing: .1em; color: #374151; }
+.ap-table th { padding: 8px 12px; text-align: left; font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; color: #374151; }
 .ap-table tbody tr { border-bottom: 1px solid rgba(31,37,53,.7); transition: background .1s; }
 .ap-table tbody tr:last-child { border-bottom: none; }
 .ap-table tbody tr:hover { background: rgba(31,37,53,.6); }
-.ap-table td { padding: 11px 15px; }
-.td-id    { font-family: monospace; font-size: 11px; color: #374151; }
+.ap-table td { padding: 8px 12px; word-break: break-word; }
+.td-id    { font-family: monospace; font-size: 10px; color: #374151; }
 .td-name  { font-weight: 600; color: #f3f4f6; }
 .td-email { color: #6b7280; }
-.td-date  { color: #6b7280; }
+.td-date  { color: #6b7280; white-space: nowrap; }
 
 .ap-status { display: inline-flex; align-items: center; gap: 5px; font-size: 10.5px; font-weight: 600; padding: 3px 9px; border-radius: 20px; border: 1px solid; }
 .ap-status.on  { background: rgba(52,211,153,.1);  color: #34d399; border-color: rgba(52,211,153,.2); }
@@ -145,9 +145,58 @@
 
 /* ════════════ RESPONSIVE — TABLET ════════════ */
 @media (max-width: 1023px) {
-  .ap-header { padding: 18px 20px 0; }
+  .ap-header      { padding: 18px 20px 0; }
   .ap-body-scroll { padding: 18px 20px 28px; }
   .ap-search-inner { max-width: 100%; }
+
+  /* Table → cards */
+  .ap-table-wrap { background: transparent; border: none; border-radius: 0; overflow: visible; }
+
+  .ap-table,
+  .ap-table thead,
+  .ap-table tbody,
+  .ap-table tr,
+  .ap-table th,
+  .ap-table td { display: block; }
+
+  .ap-table thead tr { display: none; }
+
+  .ap-table tbody tr {
+    background: #111827;
+    border: 1px solid #1f2535;
+    border-radius: 12px;
+    margin-bottom: 10px;
+    padding: 14px 16px;
+    transition: border-color .15s;
+  }
+  .ap-table tbody tr:hover { border-color: #3b82f6; background: #111827; }
+
+  .ap-table td {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 5px 0;
+    border: none;
+    font-size: 12.5px;
+  }
+  .ap-table td:not(:last-child) {
+    border-bottom: 1px solid rgba(31,37,53,.5);
+    padding-bottom: 8px;
+    margin-bottom: 3px;
+  }
+  .ap-table td::before {
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .08em;
+    color: #374151;
+    flex-shrink: 0;
+    margin-right: 12px;
+  }
+  .td-id::before    { content: 'ID'; }
+  .td-name::before  { content: 'Nom'; }
+  .td-email::before { content: 'Email'; }
+  .td-date::before  { content: 'Inscrit'; }
 }
 
 /* ════════════ RESPONSIVE — MOBILE ════════════ */
@@ -165,10 +214,7 @@
   }
   .ap-sb-eyebrow,
   .ap-sb-title { display: none; }
-  .ap-sb-brand::after {
-    content: '⚡';
-    font-size: 18px;
-  }
+  .ap-sb-brand::after { content: '⚡'; font-size: 18px; }
 
   .ap-sb-nav { padding: 8px 6px; gap: 4px; }
 
@@ -180,8 +226,8 @@
     gap: 4px;
     position: relative;
   }
-  .ap-sb-txt   { display: none; }
-  .ap-sb-ico   { font-size: 20px; }
+  .ap-sb-txt { display: none; }
+  .ap-sb-ico { font-size: 20px; }
   .ap-sb-badge {
     position: absolute;
     top: 4px; right: 4px;
@@ -192,52 +238,8 @@
   }
   .ap-sb-footer { display: none; }
 
-  /* Main content */
-  .ap-header       { padding: 14px 14px 0; }
-  .ap-body-scroll  { padding: 14px 14px 24px; }
-  .ap-page-title   { font-size: 16px; }
-  .ap-page-badge   { font-size: 10px; padding: 3px 9px; }
-  .ap-search-inner { max-width: 100%; }
-
-  /* Table → cards */
-  .ap-table-wrap { background: transparent; border: none; border-radius: 0; overflow-x: visible; }
-
-  .ap-table,
-  .ap-table thead,
-  .ap-table tbody,
-  .ap-table tr,
-  .ap-table th,
-  .ap-table td { display: block; }
-
-  .ap-table thead tr { display: none; }
-
-  .ap-table tbody tr {
-    background: #111827;
-    border: 1px solid #1f2535;
-    border-radius: 12px;
-    margin-bottom: 10px;
-    padding: 12px 14px;
-  }
-  .ap-table tbody tr:hover { background: #111827; }
-
-  .ap-table td {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 5px 0;
-    border: none;
-    font-size: 12.5px;
-  }
-
-  .ap-table td::before {
-    font-size: 10px;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: .08em;
-    color: #374151;
-  }
-  .td-id::before    { content: 'ID'; }
-  .td-name::before  { content: 'Nom'; }
-  .td-email::before { content: 'Email'; }
-  .td-date::before  { content: 'Inscrit'; }
+  .ap-header      { padding: 14px 14px 0; }
+  .ap-body-scroll { padding: 14px 14px 24px; }
+  .ap-page-title  { font-size: 16px; }
+  .ap-page-badge  { font-size: 10px; padding: 3px 9px; }
 }
